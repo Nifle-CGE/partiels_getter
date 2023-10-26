@@ -26,7 +26,7 @@ Vous devez créer ce fichier vous mêmes et le replir comme suit en remplaçant 
 
 Si vous voulez faire tourner ce programme sur une distribution Linux supportant systemd :
 
-1. remplacez "/path/to/launch.sh" dans le fichier par le chemin du ficher launch.sh
+1. remplacez "/path/to/main.py" dans le fichier par le chemin du ficher main.py
 2. déplacez ce fichier dans ~/.config/systemd/user/ (ne pas modifier user)
 3. lancez un terminal puis executez les commandes suivantes
     1. systemctl --user daemon-reload

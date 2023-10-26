@@ -4,12 +4,12 @@ import requests
 import json
 from urllib.parse import quote
 import time
-import copy
+import os
 
-with open("data.json", encoding="utf-8") as f:
+with open(os.join(os.path.dirname(os.path.realpath(__file__)), "data.json"), encoding="utf-8") as f:
     data = json.load(f)
 
-with open("secrets.json", encoding="utf-8") as f:
+with open(os.join(os.path.dirname(os.path.realpath(__file__)), "secrets.json"), encoding="utf-8") as f:
     secrets = json.load(f)
 
 def get_partiels():
