@@ -1,0 +1,9 @@
+[Unit]
+Description=Partiel Getter
+
+[Service]
+ExecStart=/path/to/main.py
+Restart=on-failure
+
+[Install]
+WantedBy=graphical.target
