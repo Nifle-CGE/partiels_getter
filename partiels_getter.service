@@ -2,7 +2,7 @@
 Description=Partiel Getter
 
 [Service]
-ExecStart=/path/to/main.py
+ExecStart=bash /path/to/launch.sh
 Restart=on-failure
 
 [Install]
