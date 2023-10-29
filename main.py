@@ -6,15 +6,19 @@ from urllib.parse import quote
 import time
 import os
 import logging
+from logging.handlers import RotatingFileHandler
 import copy
+import sys
 
 # Logging
 # Mise en place du système de logs avec impression dans la console et enregistrement dans un fichier logs.log
 log = logging.Logger("logger")
-fh = logging.FileHandler("logs.log", encoding='utf-8')
+fh = RotatingFileHandler("logs.log", maxBytes=5*1024*1024, backupCount=1, encoding='utf-8')
 formatter = logging.Formatter("[%(asctime)s] %(levelname)s in %(module)s : %(message)s")
 fh.setFormatter(formatter)
+ch = logging.StreamHandler(sys.stdout)
 log.addHandler(fh)
+log.addHandler(ch)
 
 log.debug("Importing data")
 with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "data.json"), encoding="utf-8") as f:
