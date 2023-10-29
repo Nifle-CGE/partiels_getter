@@ -5,19 +5,34 @@ import json
 from urllib.parse import quote
 import time
 import os
+import logging
+import copy
 
+# Logging
+# Mise en place du système de logs avec impression dans la console et enregistrement dans un fichier logs.log
+log = logging.Logger("logger")
+fh = logging.FileHandler("logs.log", encoding='utf-8')
+formatter = logging.Formatter("[%(asctime)s] %(levelname)s in %(module)s : %(message)s")
+fh.setFormatter(formatter)
+log.addHandler(fh)
+
+log.debug("Importing data")
 with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "data.json"), encoding="utf-8") as f:
     data = json.load(f)
+
+log.debug("Data imported, importing secrets")
 
 with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "secrets.json"), encoding="utf-8") as f:
     secrets = json.load(f)
 
+log.debug("Secrets imported")
+
 def get_partiels():
     all_events = set()
-    print("Downloading 1A calendar...")
+    log.info("Downloading 1A calendar...")
     all_events.update(Calendar(requests.get(data["url_1A"]).text).events)
     for matiere, url in data["urls_2A"].items():
-        print(f"Downloading 2A calendar for {matiere}...")
+        log.info(f"Downloading 2A calendar for {matiere}...")
         all_events.update(Calendar(requests.get(url).text).events)
     
     partiels = []
@@ -56,13 +71,14 @@ def send_partiels(partiels, update=False):
         final_str += "Location : " + partiel["location"] + "\n"
 
     final_str = final_str[:-1]
-    print(f"Sent {len(partiels)} partiels")
+    log.info(f"Sent{' the update on' if update else ''} {len(partiels)} partiels")
     requests.get(secrets["telegram_send_url"] + quote(final_str))
 
 current_partiels = []
 checks = []
 while True:
     if not current_partiels:
+        log.info("No more partiels today, getting the next ones")
         current_partiels = get_partiels()
         send_partiels(current_partiels)
     
@@ -72,21 +88,23 @@ while True:
     minutes_before = current_partiels[0]["begin"].shift(minutes=-5)
     minutes_before_end = current_partiels[0]["end"].shift(minutes=-5)
     if arrow_now < day_before:
-        print("Waiting until the day before...")
+        log.info("Waiting until the day before...")
         time.sleep((day_before - arrow_now).total_seconds())
     elif arrow_now < hour_before:
-        print("Waiting until an hour before...")
+        log.info("Waiting until an hour before...")
         time.sleep((hour_before - arrow_now).total_seconds())
     elif arrow_now < minutes_before:
-        print("Waiting until 5 minutes before...")
+        log.info("Waiting until 5 minutes before...")
         time.sleep((minutes_before - arrow_now).total_seconds())
     elif arrow_now < minutes_before_end:
-        print("Waiting until 5 minutes before the end...")
+        log.info("Waiting until 5 minutes before the end...")
         time.sleep((minutes_before_end - arrow_now).total_seconds())
     else:
         del current_partiels[0]
+        time.sleep(300)
 
     potentially_new_partiels = get_partiels()
     if current_partiels != potentially_new_partiels:
-        current_partiels = potentially_new_partiels
+        log.info("A partiel was updated, sending update")
+        current_partiels = copy.deepcopy(potentially_new_partiels)
         send_partiels(current_partiels, update=True)
