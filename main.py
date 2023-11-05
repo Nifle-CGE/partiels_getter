@@ -65,7 +65,10 @@ def get_partiels():
 
     return to_send
 
-def send_partiels(partiels, update=False):
+def send_message(message):
+    requests.get(secrets["telegram_send_url"] + quote(message))
+
+def format_partiels(partiels, update=False):
     final_str = "Un partiel a été mis a jour :\n" if update else "Voilà les partiels :\n"
     for partiel in partiels:
         final_str += "\nName : " + partiel["name"] + "\n"
@@ -76,7 +79,7 @@ def send_partiels(partiels, update=False):
 
     final_str = final_str[:-1]
     log.info(f"Sent{' the update on' if update else ''} {len(partiels)} partiels")
-    requests.get(secrets["telegram_send_url"] + quote(final_str))
+    return final_str
 
 current_partiels = []
 checks = []
@@ -84,7 +87,7 @@ while True:
     if not current_partiels:
         log.info("No more partiels today, getting the next ones")
         current_partiels = get_partiels()
-        send_partiels(current_partiels)
+        send_message(format_partiels(current_partiels))
     
     arrow_now = arrow.now("Europe/Paris")
     day_before = current_partiels[0]["begin"].shift(days=-1).replace(hour=19, minute=0)
@@ -94,21 +97,28 @@ while True:
     if arrow_now < day_before:
         log.info("Waiting until the day before...")
         time.sleep((day_before - arrow_now).total_seconds())
+        msg = "Rappel pour le début de ⬆️ dans un jour"
     elif arrow_now < hour_before:
         log.info("Waiting until an hour before...")
         time.sleep((hour_before - arrow_now).total_seconds())
+        msg = "Rappel pour le début de ⬆️ dans une heure"
     elif arrow_now < minutes_before:
         log.info("Waiting until 5 minutes before...")
         time.sleep((minutes_before - arrow_now).total_seconds())
+        msg = "Rappel pour le début de ⬆️ dans 5 minutes"
     elif arrow_now < minutes_before_end:
         log.info("Waiting until 5 minutes before the end...")
         time.sleep((minutes_before_end - arrow_now).total_seconds())
+        msg = "Rappel pour la fin de ⬆️ dans 5 minutes avant la fin"
     else:
         del current_partiels[0]
         time.sleep(300)
+        msg = "Début de ⬆️"
 
     potentially_new_partiels = get_partiels()
     if current_partiels != potentially_new_partiels:
         log.info("A partiel was updated, sending update")
         current_partiels = copy.deepcopy(potentially_new_partiels)
-        send_partiels(current_partiels, update=True)
+        msg = format_partiels(current_partiels, update=True)
+    
+    send_message(msg)
