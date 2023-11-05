@@ -13,7 +13,7 @@ import sys
 # Logging
 # Mise en place du système de logs avec impression dans la console et enregistrement dans un fichier logs.log
 log = logging.Logger("logger")
-fh = RotatingFileHandler("logs.log", maxBytes=5*1024*1024, backupCount=1, encoding='utf-8')
+fh = RotatingFileHandler(os.path.join(os.path.dirname(os.path.realpath(__file__)), "logs.log"), maxBytes=5*1024*1024, backupCount=1, encoding='utf-8')
 formatter = logging.Formatter("[%(asctime)s] %(levelname)s in %(module)s : %(message)s")
 fh.setFormatter(formatter)
 ch = logging.StreamHandler(sys.stdout)
