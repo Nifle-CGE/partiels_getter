@@ -1,9 +1,14 @@
 [Unit]
 Description=Partiel Getter
+Wants=network-online.target
+After=network-online.target
 
 [Service]
+Type=simple
+WorkingDirectory=/path/to/folder
 ExecStart=python3 /path/to/main.py
-Restart=on-failure
+Restart=always
+RestartSec=10
 
 [Install]
-WantedBy=graphical.target
+WantedBy=default.target
