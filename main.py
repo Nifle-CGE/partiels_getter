@@ -32,7 +32,7 @@ log.debug("Secrets imported")
 
 
 def clean_str(string: str):
-    return " ".join(string.split()).strip("\n")
+    return " ".join(x for x in string.split(" ") if x).strip("\n")
 
 
 def get_partiels():
@@ -87,19 +87,19 @@ def send_message(message):
 def format_partiels(partiels, update=False):
     final_str = "Un partiel a été mis a jour :\n" if update else "Voilà les prochains partiels :\n"
     for partiel in partiels:
-        final_str += "🔤Matière🔤 : " + partiel["name"] + "\n"
-        final_str += "▶️Début▶️ : " + partiel["begin"].format("DD/MM/YYYY HH:mm") + "\n"
-        final_str += "⏹️Fin⏹️ : " + partiel["end"].format("DD/MM/YYYY HH:mm") + "\n"
-        final_str += "🗓️Année🗓️ : " + ("1A" if "1A" in partiel["description"] else "2A") + "\n"
-        final_str += "👤Surveillant(s)👤 : " + ", ".join(line for line in partiel["description"].splitlines() if all(map(lambda x: x not in line, ("MINEURE", "MAJEURE", "1A", "2A", "3A")))) + "\n"
-        final_str += "📍Salle📍 : " + partiel["location"] + "\n"
+        final_str += "🔤 Matière : " + partiel["name"] + "\n"
+        final_str += "▶️ Début : " + partiel["begin"].format("DD/MM/YYYY HH:mm") + "\n"
+        final_str += "⏹️ Fin : " + partiel["end"].format("DD/MM/YYYY HH:mm") + "\n"
+        final_str += "🗓️ Promo : " + ("1A" if "1A" in partiel["description"] else "2A") + "\n"
+        final_str += "👤 Surveillants : " + ", ".join(line for line in partiel["description"].splitlines() if all(x not in line for x in ("MINEURE", "MAJEURE", "1A", "2A", "3A"))) + "\n"
+        final_str += "📍 Salle : " + partiel["location"] + "\n"
 
     final_str = final_str[:-1]
     log.info(f"Sent{' the update on' if update else ''} {len(partiels)} partiels")
     return final_str
 
 
-send_message("Début des 🔄️cycles🔄️")
+send_message("Début du 🔄️ cycle 🔄️")
 current_partiels = get_partiels()
 send_message(format_partiels(current_partiels))
 
@@ -133,7 +133,7 @@ while True:
     else:
         current_partiel = current_partiels.pop(0)
         time.sleep(300)  # 5 minutes
-        msg = "Distribution de 🍬bonbons🍬 activée pour " + current_partiel["name"]
+        msg = "Distribution de 🍬 bonbons 🍬 activée pour " + current_partiel["name"]
 
     potentially_new_partiels = get_partiels()
     if current_partiels:  # Si il reste des partiels dans le futur
