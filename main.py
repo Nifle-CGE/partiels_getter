@@ -8,6 +8,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 import copy
 import sys
+import threading
 
 # Logging
 # Mise en place du système de logs avec impression dans la console et enregistrement dans un fichier logs.log
@@ -35,13 +36,15 @@ def clean_str(string: str):
     return " ".join(x for x in string.split(" ") if x).strip("\n")
 
 
-def get_partiels():
+def get_partiels(for_week=False):
     all_events = set()
-    log.info("Downloading 1A calendar...")
+    log.debug("Downloading 1A calendar...")
     all_events.update(Calendar(requests.get(data["url_1A"]).text).events)
     for matiere, url in data["urls_2A"].items():
-        log.info(f"Downloading 2A calendar for {matiere}...")
+        log.debug(f"Downloading 2A calendar for {matiere}...")
         all_events.update(Calendar(requests.get(url).text).events)
+
+    log.info("Downloaded partiels")
 
     partiels = []
     for event in all_events:
@@ -57,24 +60,24 @@ def get_partiels():
         if (data["text_to_detect"] in event.name) and (potential_dict not in partiels) and (arrow.now("Europe/Paris") < potential_dict["end"]):
             partiels.append(potential_dict)
 
+    log.info("Cleaned partiels")
+
     partiels.sort(key=lambda x: x["end"])
 
     to_send = []
-    # si il reste au moins un partiel aujourd'hui
-    if partiels[0]["end"] < arrow.now("Europe/Paris").replace(hour=23):
-        for partiel in partiels:
-            if partiel["end"] < arrow.now("Europe/Paris").replace(hour=23):
-                to_send.append(partiel)
-            else:
-                break
+    if for_week:
+        time_limit = arrow.now("Europe/Paris").shift(weekday=4).replace(hour=23, minute=59)
     else:
-        next_partiel = partiels[0]
-        for partiel in partiels:
-            # if partiel on the same day as the next partiel
-            if partiel["end"] < next_partiel["end"].replace(hour=23):
-                to_send.append(partiel)
-            else:
-                break
+        time_limit = partiels[0]["end"].replace(hour=23, minute=59)
+
+    for partiel in partiels:
+        # if partiel on the same day or in the same week as the next partiel
+        if partiel["end"] < time_limit:
+            to_send.append(partiel)
+        else:
+            break
+
+    log.info("Sorted and removed useless partiels, partiels gotten")
 
     return to_send
 
@@ -85,9 +88,9 @@ def send_message(message):
 
 
 def format_partiels(partiels, update=False):
-    final_str = "Un partiel a été mis a jour :\n" if update else "Voilà les prochains partiels :\n"
+    final_str = "Un partiel a été mis a jour :" if update else "Voilà les prochains partiels :"
     for partiel in partiels:
-        final_str += "🔤 Matière : " + partiel["name"] + "\n"
+        final_str += "\n" + "🔤 Matière : " + partiel["name"] + "\n"
         final_str += "▶️ Début : " + partiel["begin"].format("DD/MM/YYYY HH:mm") + "\n"
         final_str += "⏹️ Fin : " + partiel["end"].format("DD/MM/YYYY HH:mm") + "\n"
         final_str += "🗓️ Promo : " + ("1A" if "1A" in partiel["description"] else "2A") + "\n"
@@ -95,13 +98,45 @@ def format_partiels(partiels, update=False):
         final_str += "📍 Salle : " + partiel["location"] + "\n"
 
     final_str = final_str[:-1]
-    log.info(f"Sent{' the update on' if update else ''} {len(partiels)} partiels")
+    log.info(f"Formatted{' the update on' if update else ''} {len(partiels)} partiels")
     return final_str
 
 
+def format_partiels_lite(partiels):
+    final_str = "Voilà un résumé des partiels de la semaine :"
+    for partiel in partiels:
+        final_str += "\n" + partiel["name"] + ", " + partiel["end"].format("DD/MM/YYYY HH:mm") + ", " + ("1A" if "1A" in partiel["description"] else "2A") + ", " + partiel["location"]
+
+    log.info(f"Formatted summary of {len(partiels)} partiels")
+    return final_str
+
+
+def week_partiels_summary_thread():
+    while True:
+        log.info("Getting week's partiels")
+        week_partiels = get_partiels(for_week=True)
+        if week_partiels:
+            msg = format_partiels_lite(week_partiels)
+        else:
+            msg = "Pas de partiels cette semaine ☺️"
+
+        send_message(msg)
+
+        log.info("Weekly summary sent, waiting until next sunday")
+
+        arrow_now = arrow.now("Europe/Paris")
+        next_sunday = arrow_now.shift(weekday=6).replace(hour=10, minute=0)
+        time.sleep((next_sunday - arrow_now).total_seconds())
+
+
 send_message("Début du 🔄️ cycle 🔄️")
+log.info("Launching summary thread")
+thread = threading.Thread(target=week_partiels_summary_thread)
+thread.start()
+log.info("Launched summary thread")
 current_partiels = get_partiels()
 send_message(format_partiels(current_partiels))
+log.info("Sent first partiels")
 
 while True:
     arrow_now = arrow.now("Europe/Paris")
@@ -132,6 +167,7 @@ while True:
         msg = "Rappel pour la fin de ⤴️ dans 5 minutes avant la fin"
     else:
         current_partiel = current_partiels.pop(0)
+        log.info("Waiting until the end...")
         time.sleep(300)  # 5 minutes
         msg = "Distribution de 🍬 bonbons 🍬 activée pour " + current_partiel["name"]
 
@@ -147,3 +183,4 @@ while True:
         msg += "\n" + format_partiels(current_partiels)
 
     send_message(msg)
+    log.info("Sent whatever needed to be sent")
