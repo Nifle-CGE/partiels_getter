@@ -64,12 +64,12 @@ def get_partiels(for_week=False):
 
     partiels.sort(key=lambda x: x["end"])
 
-    to_send = []
     if for_week:
         time_limit = arrow.now("Europe/Paris").shift(weekday=4).replace(hour=23, minute=59)
     else:
         time_limit = partiels[0]["end"].replace(hour=23, minute=59)
 
+    to_send = []
     for partiel in partiels:
         # if partiel on the same day or in the same week as the next partiel
         if partiel["end"] < time_limit:
@@ -105,82 +105,88 @@ def format_partiels(partiels, update=False):
 def format_partiels_lite(partiels):
     final_str = "Voilà un résumé des partiels de la semaine :"
     for partiel in partiels:
-        final_str += "\n" + partiel["name"] + ", " + partiel["end"].format("DD/MM/YYYY HH:mm") + ", " + ("1A" if "1A" in partiel["description"] else "2A") + ", " + partiel["location"]
+        final_str += f"\n- 🔤 {partiel['name']}, ⏹️ {partiel['end'].format('DD/MM/YYYY HH:mm')}, 🗓️ {'1A' if '1A' in partiel['description'] else '2A'}, 📍 {partiel['location']}"
 
     log.info(f"Formatted summary of {len(partiels)} partiels")
     return final_str
 
 
-def week_partiels_summary_thread():
+def main():
+    send_message("Début du 🔄️ cycle 🔄️")
+
+    current_partiels = get_partiels()
+    send_message(format_partiels(current_partiels))
+    log.info("Sent first partiels")
+
+    wait_for_sunday = False
     while True:
-        log.info("Getting week's partiels")
-        week_partiels = get_partiels(for_week=True)
-        if week_partiels:
-            msg = format_partiels_lite(week_partiels)
-        else:
-            msg = "Pas de partiels cette semaine ☺️"
+        if wait_for_sunday:
+            wait_for_sunday = False
 
-        send_message(msg)
+            log.info("Waiting until sunday morning")
+            arrow_now = arrow.now("Europe/Paris")
+            next_sunday = arrow_now.shift(weekday=6).replace(hour=10, minute=0)
+            time.sleep((next_sunday - arrow_now).total_seconds())
 
-        log.info("Weekly summary sent, waiting until next sunday")
+            log.info("Getting week's partiels")
+            week_partiels = get_partiels(for_week=True)
+            if week_partiels:
+                msg = format_partiels_lite(week_partiels)
+            else:
+                msg = "Pas de partiels cette semaine ☺️"
+
+            send_message(msg)
+            log.info("Weekly summary sent")
 
         arrow_now = arrow.now("Europe/Paris")
-        next_sunday = arrow_now.shift(weekday=6).replace(hour=10, minute=0)
-        time.sleep((next_sunday - arrow_now).total_seconds())
+        day_before = current_partiels[0]["begin"].shift(days=-1).replace(hour=20, minute=0)
+        morning_before = current_partiels[0]["begin"].replace(hour=7, minute=20)
+        hour_before = current_partiels[0]["begin"].shift(hours=-1)
+        minutes_before = current_partiels[0]["begin"].shift(minutes=-5)
+        minutes_before_end = current_partiels[0]["end"].shift(minutes=-5)
+        if arrow_now < day_before:
+            log.info("Waiting until the day before...")
+            time.sleep((day_before - arrow_now).total_seconds())
+            msg = "Rappel pour le début de ⤴️ dans un jour"
+        elif arrow_now < morning_before:
+            log.info("Waiting until the morning before...")
+            time.sleep((morning_before - arrow_now).total_seconds())
+            msg = "Rappel pour le début de ⤴️ aujourd'hui"
+        elif arrow_now < hour_before:
+            log.info("Waiting until an hour before...")
+            time.sleep((hour_before - arrow_now).total_seconds())
+            msg = "Rappel pour le début de ⤴️ dans une heure"
+        elif arrow_now < minutes_before:
+            log.info("Waiting until 5 minutes before...")
+            time.sleep((minutes_before - arrow_now).total_seconds())
+            msg = "Rappel pour le début de ⤴️ dans 5 minutes"
+        elif arrow_now < minutes_before_end:
+            log.info("Waiting until 5 minutes before the end...")
+            time.sleep((minutes_before_end - arrow_now).total_seconds())
+            msg = "Rappel pour la fin de ⤴️ dans 5 minutes avant la fin"
+        else:
+            current_partiel = current_partiels.pop(0)
+            log.info("Waiting until the end...")
+            time.sleep(300)  # 5 minutes
+            msg = "Distribution de 🍬 bonbons 🍬 activée pour " + current_partiel["name"]
+
+            if not get_partiels(for_week=True):  # Si ce partiel est le dernier de la semaine
+                wait_for_sunday = True
+
+        potentially_new_partiels = get_partiels()
+        if current_partiels:  # Si il reste des partiels dans le futur
+            if current_partiels != potentially_new_partiels:  # Si y'a eut un changement dans les partiels
+                log.info("A partiel has changed, sending update")
+                current_partiels = copy.deepcopy(potentially_new_partiels)
+                msg = format_partiels(current_partiels, update=True) + "\n" + msg
+        else:  # Si plus aucun partiel
+            log.info("No more partiels today, getting the next ones")
+            current_partiels = get_partiels()
+            msg += "\n" + format_partiels(current_partiels)
+
+        send_message(msg)
+        log.info("Sent whatever needed to be sent")
 
 
-send_message("Début du 🔄️ cycle 🔄️")
-log.info("Launching summary thread")
-thread = threading.Thread(target=week_partiels_summary_thread)
-thread.start()
-log.info("Launched summary thread")
-current_partiels = get_partiels()
-send_message(format_partiels(current_partiels))
-log.info("Sent first partiels")
-
-while True:
-    arrow_now = arrow.now("Europe/Paris")
-    day_before = current_partiels[0]["begin"].shift(days=-1).replace(hour=20, minute=0)
-    morning_before = current_partiels[0]["begin"].replace(hour=7, minute=20)
-    hour_before = current_partiels[0]["begin"].shift(hours=-1)
-    minutes_before = current_partiels[0]["begin"].shift(minutes=-5)
-    minutes_before_end = current_partiels[0]["end"].shift(minutes=-5)
-    if arrow_now < day_before:
-        log.info("Waiting until the day before...")
-        time.sleep((day_before - arrow_now).total_seconds())
-        msg = "Rappel pour le début de ⤴️ dans un jour"
-    elif arrow_now < morning_before:
-        log.info("Waiting until the morning before...")
-        time.sleep((morning_before - arrow_now).total_seconds())
-        msg = "Rappel pour le début de ⤴️ aujourd'hui"
-    elif arrow_now < hour_before:
-        log.info("Waiting until an hour before...")
-        time.sleep((hour_before - arrow_now).total_seconds())
-        msg = "Rappel pour le début de ⤴️ dans une heure"
-    elif arrow_now < minutes_before:
-        log.info("Waiting until 5 minutes before...")
-        time.sleep((minutes_before - arrow_now).total_seconds())
-        msg = "Rappel pour le début de ⤴️ dans 5 minutes"
-    elif arrow_now < minutes_before_end:
-        log.info("Waiting until 5 minutes before the end...")
-        time.sleep((minutes_before_end - arrow_now).total_seconds())
-        msg = "Rappel pour la fin de ⤴️ dans 5 minutes avant la fin"
-    else:
-        current_partiel = current_partiels.pop(0)
-        log.info("Waiting until the end...")
-        time.sleep(300)  # 5 minutes
-        msg = "Distribution de 🍬 bonbons 🍬 activée pour " + current_partiel["name"]
-
-    potentially_new_partiels = get_partiels()
-    if current_partiels:  # Si il reste des partiels dans le futur
-        if current_partiels != potentially_new_partiels:  # Si y'a eut un changement dans les partiels
-            log.info("A partiel has changed, sending update")
-            current_partiels = copy.deepcopy(potentially_new_partiels)
-            msg = format_partiels(current_partiels, update=True) + "\n" + msg
-    else:  # Si plus aucun partiel
-        log.info("No more partiels today, getting the next ones")
-        current_partiels = get_partiels()
-        msg += "\n" + format_partiels(current_partiels)
-
-    send_message(msg)
-    log.info("Sent whatever needed to be sent")
+if __name__ == "__main__":
+    main()
