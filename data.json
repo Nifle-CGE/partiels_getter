@@ -1,16 +1,16 @@
 {
-    "url_1A": "https://edt.inp-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=6991&projectId=50&calType=ical&firstDate=2023-08-01&lastDate=2024-07-15",
-    "urls_2A": {
-        "MAJEURE Chimie": "https://edt.inp-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=4271&projectId=50&calType=ical&firstDate=2023-08-01&lastDate=2024-07-15",
-        "MAJEURE Physique": "https://edt.inp-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=594&projectId=50&calType=ical&firstDate=2023-08-01&lastDate=2024-07-15",
-        "MAJEURE Info": "https://edt.inp-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=4288&projectId=50&calType=ical&firstDate=2023-08-01&lastDate=2024-07-15",
-        "MAJEURE Math": "https://edt.inp-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=4243&projectId=50&calType=ical&firstDate=2023-08-01&lastDate=2024-07-15",
-        "MAJEURE Bio": "https://edt.inp-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=4277&projectId=50&calType=ical&firstDate=2023-08-01&lastDate=2024-07-15",
-        "Mineure Chimie": "https://edt.inp-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=4175&projectId=50&calType=ical&firstDate=2023-08-01&lastDate=2024-07-15",
-        "Mineure Physique": "https://edt.inp-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=4259&projectId=50&calType=ical&firstDate=2023-08-01&lastDate=2024-07-15",
-        "Mineure SI": "https://edt.inp-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=4231&projectId=50&calType=ical&firstDate=2023-08-01&lastDate=2024-07-15",
-        "Mineure Biologie": "https://edt.inp-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=4277&projectId=50&calType=ical&firstDate=2023-08-01&lastDate=2024-07-15",
-        "Mineure informatique": "https://edt.inp-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=4238&projectId=50&calType=ical&firstDate=2023-08-01&lastDate=2024-07-15"
+    "cal_urls": {
+        "1A": "https://edt.inp-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=6991&projectId=50&calType=ical&firstDate=2023-08-01&lastDate=2024-07-15",
+        "2A MAJEURE Chimie": "https://edt.inp-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=4271&projectId=50&calType=ical&firstDate=2023-08-01&lastDate=2024-07-15",
+        "2A MAJEURE Physique": "https://edt.inp-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=594&projectId=50&calType=ical&firstDate=2023-08-01&lastDate=2024-07-15",
+        "2A MAJEURE Info": "https://edt.inp-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=4288&projectId=50&calType=ical&firstDate=2023-08-01&lastDate=2024-07-15",
+        "2A MAJEURE Math": "https://edt.inp-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=4243&projectId=50&calType=ical&firstDate=2023-08-01&lastDate=2024-07-15",
+        "2A MAJEURE Bio": "https://edt.inp-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=4277&projectId=50&calType=ical&firstDate=2023-08-01&lastDate=2024-07-15",
+        "2A Mineure Chimie": "https://edt.inp-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=4175&projectId=50&calType=ical&firstDate=2023-08-01&lastDate=2024-07-15",
+        "2A Mineure Physique": "https://edt.inp-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=4259&projectId=50&calType=ical&firstDate=2023-08-01&lastDate=2024-07-15",
+        "2A Mineure SI": "https://edt.inp-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=4231&projectId=50&calType=ical&firstDate=2023-08-01&lastDate=2024-07-15",
+        "2A Mineure Biologie": "https://edt.inp-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=4277&projectId=50&calType=ical&firstDate=2023-08-01&lastDate=2024-07-15",
+        "2A Mineure informatique": "https://edt.inp-toulouse.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?resources=4238&projectId=50&calType=ical&firstDate=2023-08-01&lastDate=2024-07-15"
     },
     "text_to_detect": "Contrôle"
 }

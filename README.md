@@ -8,18 +8,18 @@ Pour adapter ce programme a votre établissement, suivez les indications ci-dess
 
 ### data.json
 
-Modifiez les urls de calendrier ical pour qu'ils soient les calendriers de votre établissement.
+Modifiez les urls de calendrier ical pour qu'ils soient les urls de votre établissement.
 
-Si il y a différentes matières que l'on peut choisir et donc que certaines personnes n'ont pas les mêmes partiels que d'autres, vous devez mettre un url par option pour que tout les partiels soient pris en compte.
+Si il y a différentes matières que l'on peut choisir et donc que certaines personnes n'ont pas les mêmes partiels que d'autres, vous devez mettre un url par option (modifier la liste de valeurs de "cal_urls") pour que tout les partiels soient pris en compte.
 
-Si les partiels ne sont pas appellés exactement "Contrôle" dans votre emploi du temps, vous pouvez modifier les "text_to_detect".
+Si les partiels ne sont pas appelés exactement "Contrôle" dans votre emploi du temps, vous pouvez modifier la valeur de "text_to_detect".
 
 ### secrets.json
 
-Vous devez créer ce fichier vous mêmes et le replir comme suit en remplaçant les [] par les données correspondates.
+Vous devez créer ce fichier vous mêmes et le remplir comme suit en remplaçant les [] par les données correspondates.
 
     {
-        "telegram_send_url": "https://api.telegram.org/[votre id de bot]:[votre clé d'api]/sendMessage?chat_id=[l'id de conversation auquel vous voulez envoyer le message]&text="
+        "telegram_send_url": "https://api.telegram.org/[le token de votre bot]/sendMessage?chat_id=[l'id de conversation auquel vous voulez envoyer le message]&text="
     }
 
 ### partiels_getter.service

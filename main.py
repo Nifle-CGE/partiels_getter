@@ -8,7 +8,6 @@ import logging
 from logging.handlers import RotatingFileHandler
 import copy
 import sys
-import threading
 
 # Logging
 # Mise en place du système de logs avec impression dans la console et enregistrement dans un fichier logs.log
@@ -38,10 +37,8 @@ def clean_str(string: str):
 
 def get_partiels(for_week=False):
     all_events = set()
-    log.debug("Downloading 1A calendar...")
-    all_events.update(Calendar(requests.get(data["url_1A"]).text).events)
-    for matiere, url in data["urls_2A"].items():
-        log.debug(f"Downloading 2A calendar for {matiere}...")
+    for matiere, url in data["cal_urls"].items():
+        log.debug(f"Downloading calendar for {matiere}...")
         all_events.update(Calendar(requests.get(url).text).events)
 
     log.info("Downloaded partiels")
