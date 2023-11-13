@@ -8,6 +8,8 @@ import logging
 from logging.handlers import RotatingFileHandler
 import copy
 import sys
+from icecream import ic
+import pickle
 
 # Logging
 # Mise en place du système de logs avec impression dans la console et enregistrement dans un fichier logs.log
@@ -37,9 +39,37 @@ def clean_str(string: str):
 
 def get_partiels(for_week=False):
     all_events = set()
+    use_cache = False
     for matiere, url in data["cal_urls"].items():
         log.debug(f"Downloading calendar for {matiere}...")
-        all_events.update(Calendar(requests.get(url).text).events)
+        try:
+            request_text = requests.get(url).text
+            cal_events = Calendar(request_text).events
+        except Exception as e:
+            log.warning("Importing calendar failed, using cache :\n" + str(e))
+            send_message("Erreur dans l'importation des calendriers, utilisation du cache")
+            use_cache = True
+            break
+
+        all_events.update(cal_events)
+
+    if use_cache:
+        try:
+            with open("cal_cache.pickle", "rb") as f:
+                all_events = pickle.load(f)
+        except FileNotFoundError as e:
+            log.warning("Cache not found, entering recovery mode")
+            send_message("Cache inexistant, démarrage du mode de récupération")
+            while True:
+                try:
+                    request_text = requests.get(url).text
+                    cal_events = Calendar(request_text).events
+                    return get_partiels(for_week=for_week)
+                except Exception as e:
+                    time.sleep(3600)
+    else:
+        with open("cal_cache.pickle", "wb") as f:
+            pickle.dump(all_events, f)
 
     log.info("Downloaded partiels")
 
@@ -109,6 +139,7 @@ def format_partiels_lite(partiels):
 
 
 def main():
+    log.info("Starting cycle...")
     send_message("Début du 🔄️ cycle 🔄️")
 
     current_partiels = get_partiels()
