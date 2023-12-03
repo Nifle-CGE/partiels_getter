@@ -121,7 +121,7 @@ def format_partiels(partiels, update=False):
         final_str += "▶️ Début : " + partiel["begin"].format("DD/MM/YYYY HH:mm") + "\n"
         final_str += "⏹️ Fin : " + partiel["end"].format("DD/MM/YYYY HH:mm") + "\n"
         final_str += "🗓️ Promo : " + ("1A" if "1A" in partiel["description"] else "2A") + "\n"
-        final_str += "👤 Surveillants : " + ", ".join(line for line in partiel["description"].splitlines() if all(x not in line for x in ("MINEURE", "MAJEURE", "1A", "2A", "3A"))) + "\n"
+        final_str += "👤 Surveillants : " + ", ".join(line for line in partiel["description"].splitlines() if all(x not in line for x in ("MINEURE", "MAJEURE", "1A", "2A", "3A", "HN-"))) + "\n"
         final_str += "📍 Salle : " + partiel["location"] + "\n"
 
     final_str = final_str[:-1]
@@ -162,9 +162,13 @@ def main():
                 msg = format_partiels_lite(week_partiels)
             else:
                 msg = "Pas de partiels cette semaine ☺️"
+                wait_for_sunday = True
 
             send_message(msg)
             log.info("Weekly summary sent")
+
+            if wait_for_sunday:
+                continue
 
         arrow_now = arrow.now("Europe/Paris")
         day_before = current_partiels[0]["begin"].shift(days=-1).replace(hour=20, minute=0)
