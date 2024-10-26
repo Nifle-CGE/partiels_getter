@@ -1,4 +1,6 @@
-secrets.json
+.venv
 test.py
 logs.log
 cal_cache.pickle
+
+secrets.json
